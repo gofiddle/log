@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -107,7 +108,7 @@ type DefaultLogFormatter struct {
 
 func (f *DefaultLogFormatter) Format(t time.Time, level int, message string) string {
 	timeStr := t.UTC().Format("2006-01-02T15:04:05 (MST)")
-	return fmt.Sprintf("%s: %s: %s\n", loglevel2string(level), timeStr, message)
+	return fmt.Sprintf("%s: %s: %s\n", LogLevel2String(level), timeStr, message)
 }
 
 // New creates a new logger with the given writer
@@ -347,7 +348,7 @@ func (logger *Logger) Panicln(v ...interface{}) {
 	panic(nil)
 }
 
-func loglevel2string(level int) string {
+func LogLevel2String(level int) string {
 	switch level {
 	case LOG_LEVEL_TRACE:
 		return "TRACE"
@@ -363,5 +364,25 @@ func loglevel2string(level int) string {
 		return "FATAL"
 	default:
 		return "Unknown"
+	}
+}
+
+func String2LogLevel(str string) int {
+	str = strings.ToUpper(str)
+	switch str {
+	case "TRACE":
+		return LOG_LEVEL_TRACE
+	case "DEBUG":
+		return LOG_LEVEL_DEBUG
+	case "INFO":
+		return LOG_LEVEL_INFO
+	case "WARN":
+		return LOG_LEVEL_WARN
+	case "ERROR":
+		return LOG_LEVEL_WARN
+	case "FATAL":
+		return LOG_LEVEL_FATAL
+	default:
+		return -1
 	}
 }
