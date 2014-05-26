@@ -165,6 +165,11 @@ func (logger *Logger) SetLogLevel(level int) {
 	logger.level = level
 }
 
+// SetFormater sets the current formater to the new one
+func (logger *Logger) SetFormatter(formatter LogFormatter) {
+	logger.formatter = formatter
+}
+
 // Close closes the writer of the logger.
 func (logger *Logger) Close() {
 	if logger.writeCloser != nil {
