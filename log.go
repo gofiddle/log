@@ -1,4 +1,5 @@
 // Package log provide an easy to use logging package that supports level-based and asynchronized logging.
+// It's designed to be used as a drop-in replacement of the standard log package
 package log
 
 import (
@@ -28,6 +29,8 @@ type LogMessage struct {
 	data []byte
 }
 
+const DEFAULT_QUEUE_SIZE = 100
+
 type AsyncLogWriter struct {
 	w       io.Writer
 	queue   chan LogMessage
@@ -35,8 +38,11 @@ type AsyncLogWriter struct {
 	closed  chan int
 }
 
-func NewAsyncLogWriter(w io.Writer) *AsyncLogWriter {
-	queue := make(chan LogMessage, 100)
+func NewAsyncLogWriter(w io.Writer, n int) *AsyncLogWriter {
+	if n <= 0 {
+		n = DEFAULT_QUEUE_SIZE
+	}
+	queue := make(chan LogMessage, n)
 
 	aw := &AsyncLogWriter{
 		queue:   queue,
@@ -117,7 +123,7 @@ func New(w io.Writer, loglevel int) *Logger {
 func NewHTTPLogger(url string, loglevel int) *Logger {
 	return &Logger{
 		level:     loglevel,
-		writer:    NewAsyncLogWriter(&HTTPLogWriter{url: url}),
+		writer:    NewAsyncLogWriter(&HTTPLogWriter{url: url}, DEFAULT_QUEUE_SIZE),
 		formatter: &DefaultLogFormatter{},
 	}
 }
@@ -219,6 +225,17 @@ func (logger *Logger) Logf(loglevel int, format string, v ...interface{}) {
 	}
 }
 
+// Logln logs a formatted message at the given log level
+func (logger *Logger) Logln(loglevel int, v ...interface{}) {
+	if loglevel >= logger.level {
+		s := fmt.Sprintln(v...)
+		msg := logger.formatter.Format(time.Now(), loglevel, s)
+		if logger.Writer() != nil {
+			logger.Writer().Write([]byte(msg))
+		}
+	}
+}
+
 // Trace logs a formatted message at log level: LOG_LEVEL_TRACE
 func (logger *Logger) Trace(v ...interface{}) {
 	logger.Log(LOG_LEVEL_TRACE, v...)
@@ -227,6 +244,11 @@ func (logger *Logger) Trace(v ...interface{}) {
 // Tracef logs a formatted message at log level: LOG_LEVEL_TRACE
 func (logger *Logger) Tracef(fmt string, v ...interface{}) {
 	logger.Logf(LOG_LEVEL_TRACE, fmt, v...)
+}
+
+// Tracef logs a formatted message at log level: LOG_LEVEL_TRACE
+func (logger *Logger) Traceln(v ...interface{}) {
+	logger.Logln(LOG_LEVEL_TRACE, v...)
 }
 
 // Debug logs a formatted message at log level: LOG_LEVEL_DEBUG
@@ -239,6 +261,11 @@ func (logger *Logger) Debugf(format string, v ...interface{}) {
 	logger.Logf(LOG_LEVEL_DEBUG, format, v...)
 }
 
+// Debugln logs a formatted message at log level: LOG_LEVEL_DEBUG
+func (logger *Logger) Debugln(v ...interface{}) {
+	logger.Logln(LOG_LEVEL_DEBUG, v...)
+}
+
 // Info logs a formatted message at log level: LOG_LEVEL_INFO
 func (logger *Logger) Info(v ...interface{}) {
 	logger.Log(LOG_LEVEL_INFO, v...)
@@ -247,6 +274,11 @@ func (logger *Logger) Info(v ...interface{}) {
 // Infof logs a formatted message at log level: LOG_LEVEL_INFO
 func (logger *Logger) Infof(format string, v ...interface{}) {
 	logger.Logf(LOG_LEVEL_INFO, format, v...)
+}
+
+// Infoln logs a formatted message at log level: LOG_LEVEL_INFO
+func (logger *Logger) Infoln(v ...interface{}) {
+	logger.Logln(LOG_LEVEL_INFO, v...)
 }
 
 // Warn logs a formatted message at log level: LOG_LEVEL_WARN
@@ -259,6 +291,11 @@ func (logger *Logger) Warnf(format string, v ...interface{}) {
 	logger.Logf(LOG_LEVEL_WARN, format, v...)
 }
 
+// Warnln logs a formatted message at log level: LOG_LEVEL_WARN
+func (logger *Logger) Warnln(v ...interface{}) {
+	logger.Logln(LOG_LEVEL_WARN, v...)
+}
+
 // Error logs a formatted message at log level: LOG_LEVEL_ERROR
 func (logger *Logger) Error(v ...interface{}) {
 	logger.Log(LOG_LEVEL_ERROR, v...)
@@ -269,14 +306,45 @@ func (logger *Logger) Errorf(format string, v ...interface{}) {
 	logger.Logf(LOG_LEVEL_ERROR, format, v...)
 }
 
-// Fatal logs a formatted message at log level: LOG_LEVEL_FATAL
-func (logger *Logger) Fatal(v ...interface{}) {
-	logger.Log(LOG_LEVEL_FATAL, v...)
+// Errorln logs a formatted message at log level: LOG_LEVEL_ERROR
+func (logger *Logger) Errorln(v ...interface{}) {
+	logger.Logln(LOG_LEVEL_ERROR, v...)
 }
 
-// Fatalf logs a formatted message at log level: LOG_LEVEL_FATAL
+// Fatal logs a formatted message at log level: LOG_LEVEL_FATAL then calls os.Exit(1)
+func (logger *Logger) Fatal(v ...interface{}) {
+	logger.Log(LOG_LEVEL_FATAL, v...)
+	os.Exit(1)
+}
+
+// Fatalf logs a formatted message at log level: LOG_LEVEL_FATAL then calls os.Exit(1)
 func (logger *Logger) Fatalf(format string, v ...interface{}) {
 	logger.Logf(LOG_LEVEL_FATAL, format, v...)
+	os.Exit(1)
+}
+
+// Panic logs a formatted message at log level: LOG_LEVEL_FATAL then calls os.Exit(1)
+func (logger *Logger) Fatalln(v ...interface{}) {
+	logger.Logln(LOG_LEVEL_FATAL, v...)
+	os.Exit(1)
+}
+
+// Panic logs a message at log level: LOG_LEVEL_FATAL then calls panic()
+func (logger *Logger) Panic(v ...interface{}) {
+	logger.Log(LOG_LEVEL_FATAL, v...)
+	panic(nil)
+}
+
+// Panicf logs a formatted message at log level: LOG_LEVEL_FATAL then calls panic()
+func (logger *Logger) Panicf(format string, v ...interface{}) {
+	logger.Logf(LOG_LEVEL_FATAL, format, v...)
+	panic(nil)
+}
+
+// Panicln logs a formatted message at log level: LOG_LEVEL_FATAL then calls panic()
+func (logger *Logger) Panicln(v ...interface{}) {
+	logger.Logln(LOG_LEVEL_FATAL, v...)
+	panic(nil)
 }
 
 func loglevel2string(level int) string {

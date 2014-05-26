@@ -21,7 +21,6 @@ func TestLogger(t *testing.T) {
 	logger.Info("This is a info message")
 	logger.Warn("This is a warning message")
 	logger.Error("This is an error message")
-	logger.Fatal("This is a fatal message")
 }
 
 func TestFileLogger(t *testing.T) {
@@ -40,7 +39,6 @@ func TestFileLogger(t *testing.T) {
 	logger.Info("This is a info message")
 	logger.Warn("This is a warning message")
 	logger.Error("This is an error message")
-	logger.Fatal("This is a fatal message")
 }
 
 func startLogServer() {
@@ -87,7 +85,6 @@ func TestHTTPLogger(t *testing.T) {
 	logger.Info("This is a testing message")
 	logger.Warn("This is a warning message")
 	logger.Error("This is an error message")
-	logger.Fatal("This is a fatal message")
 
 	// Wait for 5 seconds to make sure the messages have reached the server
 	stopLogServerAfter(5)

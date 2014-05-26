@@ -24,7 +24,6 @@ func main() {
 	logger.Info("Hello World!")
 	logger.Warn("This is a warnning message.")
 	logger.Error("This is an error message.")
-	logger.Fatal("This is a fatal message.")
 }
 ~~~
 
@@ -42,7 +41,6 @@ func main() {
 	logger.Info("Hello World!")
 	logger.Warn("This is a warnning message.")
 	logger.Error("This is an error message.")
-	logger.Fatal("This is a fatal message.")
 }
 ~~~
 
@@ -59,7 +57,6 @@ func main() {
 	logger.Info("Hello World!")
 	logger.Warn("This is a warnning message.")
 	logger.Error("This is an error message.")
-	logger.Fatal("This is a fatal message.")
 }
 ~~~
 
@@ -77,7 +74,6 @@ func main() {
 	logger.Info("Hello World!")
 	logger.Warn("This is a warnning message.")
 	logger.Error("This is an error message.")
-	logger.Fatal("This is a fatal message.")
 }
 ```
 
@@ -103,7 +99,6 @@ func main() {
 	logger.Info("Hello World!")
 	logger.Warn("This is a warnning message.")
 	logger.Error("This is an error message.")
-	logger.Fatal("This is a fatal message.")
 }
 ~~~
 
