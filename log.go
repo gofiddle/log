@@ -50,10 +50,9 @@ type LogMessage struct {
 const DEFAULT_QUEUE_SIZE = 100
 
 type AsyncLogWriter struct {
-	w       io.Writer
-	queue   chan LogMessage
-	closing bool
-	closed  chan int
+	w      io.Writer
+	queue  chan LogMessage
+	closed chan int
 }
 
 func NewAsyncLogWriter(w io.Writer, n int) *AsyncLogWriter {
@@ -63,22 +62,19 @@ func NewAsyncLogWriter(w io.Writer, n int) *AsyncLogWriter {
 	queue := make(chan LogMessage, n)
 
 	aw := &AsyncLogWriter{
-		queue:   queue,
-		w:       w,
-		closing: false,
-		closed:  make(chan int),
+		queue:  queue,
+		w:      w,
+		closed: make(chan int),
 	}
 
 	go func(w *AsyncLogWriter) {
-		for !w.closing {
-			// process all queued messages
-			for msg := range w.queue {
-				_, err := w.w.Write(msg.data)
-				if err != nil {
-					// the writer failed to write the message somehow,
-					// we just discard the message here, but other implementations
-					// might try to resend the message
-				}
+		// process all queued messages until the queue is closed
+		for msg := range w.queue {
+			_, err := w.w.Write(msg.data)
+			if err != nil {
+				// the writer failed to write the message somehow,
+				// we just discard the message here, but other implementations
+				// might try to resend the message
 			}
 		}
 		w.closed <- 1 // all messages are processed. ready to close
@@ -89,7 +85,6 @@ func NewAsyncLogWriter(w io.Writer, n int) *AsyncLogWriter {
 
 func (w *AsyncLogWriter) Close() {
 	close(w.queue)
-	w.closing = true
 	<-w.closed
 }
 
