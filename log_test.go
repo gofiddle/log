@@ -1,6 +1,7 @@
 package log
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -28,7 +29,10 @@ func TestFileLogger(t *testing.T) {
 
 	// Create a logger that logs to /tmp
 	// We don't specify the log filename, so it will automatically use the program name saved in os.Args[0]
-	logger := NewFileLogger("/tmp", "", LOG_LEVEL_DEBUG)
+	logger, err := NewFileLogger("/tmp", "", LOG_LEVEL_DEBUG)
+	if err != nil {
+		panic(err)
+	}
 
 	// We need to make sure the logger will be closed
 	defer logger.Close()
@@ -88,6 +92,57 @@ func TestHTTPLogger(t *testing.T) {
 
 	// Wait for 5 seconds to make sure the messages have reached the server
 	stopLogServerAfter(5)
+}
+
+func TestPanic(t *testing.T) {
+	fmt.Println("Running TestPanic...")
+
+	// Create a logger that write log to a file asynchronously
+	defer func() {
+		if r := recover(); r != nil {
+			// recover the logger.Panic, now let's check the result file
+			// it should contains 11 lines of messages
+			f, err := os.OpenFile("/tmp/test_panic.log", os.O_RDONLY, 0)
+			if err != nil {
+				panic(err)
+			}
+			defer f.Close()
+
+			reader := bufio.NewReader(f)
+			cnt := 0
+			for {
+				_, err := reader.ReadString('\n')
+				cnt = cnt + 1
+				if err != nil {
+					break
+				}
+			}
+			if cnt != 11 {
+				t.Fail()
+			}
+		}
+	}()
+
+	// open the log file
+	file, err := os.OpenFile("/tmp/test_panic.log", os.O_CREATE|os.O_WRONLY, 0640)
+	if err != nil {
+		panic(err)
+	}
+	// No need to defer file.Close() because the logger will automatic close the file after use
+
+	// create an AsyncLogWriter
+	w := NewAsyncLogWriter(file, DEFAULT_QUEUE_SIZE)
+	logger := New(w, LOG_LEVEL_DEBUG)
+
+	// Print 10 log messages
+	for i := 0; i < 10; i++ {
+		logger.Infof("Message #%d", i)
+	}
+
+	// Log a panic message
+	logger.Panic("Panic!")
+
+	//
 }
 
 func BenchmarkHTTPLogger(b *testing.B) {
