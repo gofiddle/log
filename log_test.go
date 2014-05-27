@@ -8,6 +8,8 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/gofiddle/log"
 )
 
 func TestLogger(t *testing.T) {
@@ -92,6 +94,27 @@ func TestHTTPLogger(t *testing.T) {
 
 	// Wait for 5 seconds to make sure the messages have reached the server
 	stopLogServerAfter(5)
+}
+
+func TestCloseTwice(t *testing.T) {
+	fmt.Println("Running TestCloseWriterTwice...")
+
+	// open the log file
+	file, err := os.OpenFile("/tmp/test_panic.log", os.O_CREATE|os.O_WRONLY, 0640)
+	if err != nil {
+		panic(err)
+	}
+
+	logger := New(log.NewAsyncLogWriter(file, 100), LOG_LEVEL_DEBUG)
+
+	// Print 10 log messages
+	for i := 0; i < 10; i++ {
+		logger.Infof("Message #%d", i)
+	}
+
+	// shouldn't panic if close the logger twice
+	logger.Close()
+	logger.Close()
 }
 
 func TestPanic(t *testing.T) {

@@ -16,12 +16,13 @@ import (
 )
 
 const (
-	LOG_LEVEL_TRACE = 0
-	LOG_LEVEL_DEBUG = 1
-	LOG_LEVEL_INFO  = 2
-	LOG_LEVEL_WARN  = 3
-	LOG_LEVEL_ERROR = 4
-	LOG_LEVEL_FATAL = 5
+	_ = iota
+	LOG_LEVEL_TRACE
+	LOG_LEVEL_DEBUG
+	LOG_LEVEL_INFO
+	LOG_LEVEL_WARN
+	LOG_LEVEL_ERROR
+	LOG_LEVEL_FATAL
 )
 
 type HTTPLogWriter struct {
@@ -83,6 +84,7 @@ func NewAsyncLogWriter(w io.Writer, n int) *AsyncLogWriter {
 	return aw
 }
 
+// Close closes the AsyncLogWriter. It will block here until the log message queue is drained.
 func (w *AsyncLogWriter) Close() {
 	close(w.queue)
 	<-w.closed
@@ -184,11 +186,13 @@ func (logger *Logger) SetFormatter(formatter LogFormatter) {
 	logger.mutex.Unlock()
 }
 
-// Close closes the writer of the logger.
+// Close closes logger. If the log writer implements the io.WriteCloser interface, the logger will close the writer too.
 func (logger *Logger) Close() {
+	logger.mutex.Lock()
 	if logger.writeCloser != nil {
 		logger.writeCloser.Close()
 	}
+	logger.mutex.Unlock()
 }
 
 // Writer returns current writer of the logger.

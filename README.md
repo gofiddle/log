@@ -1,7 +1,6 @@
 # Log
 
-Log is an easy to use golang logging library. It supports level based  and asynchronized logging.
-
+Log is an easy to use golang logging library. It supports level based  and asynchronized logging. It's designed to be used as a drop-in replacement of the standard log package
 
 ## Getting Started
 ### Install
@@ -17,7 +16,10 @@ package main
 import "github.com/gofiddle/log"
 
 func main() {
-	logger := log.NewFileLogger("/var/log", "gofiddle", log.LOG_LEVEL_INFO)
+	logger, err := log.NewFileLogger("/var/log", "gofiddle", log.LOG_LEVEL_INFO)
+	if err != nil {
+		panic(err)
+	}
 	defer logger.Close()
 	logger.Trace("This is a trace message.")
 	logger.Debug("This is a debug message.")
@@ -63,7 +65,7 @@ import (
 )
 
 func main() {
-	logger := log.New(os.Stdout, log.LOG_LEVEL_INFO)
+	logger, err := log.New(os.Stdout, log.LOG_LEVEL_INFO)
 	logger.Trace("This is a trace message.")
 	logger.Debug("This is a debug message.")
 	logger.Info("Hello World!")
@@ -131,6 +133,9 @@ func main() {
 
 ## Author and Maintainer
 * Tom Li <nklizhe@gmail.com>
+
+## Acknowledgement
+Thanks Dave Cheney @davecheney and Xing Xing @mikespook help reviewing the code and giving me feedbacks!
 
 ## License
 MIT License
