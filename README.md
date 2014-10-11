@@ -1,4 +1,5 @@
-# Log
+# Log 
+[![Build Status](https://travis-ci.org/gofiddle/log.svg?branch=master)](https://travis-ci.org/gofiddle/log)
 
 Log is an easy to use golang logging library. It supports level based  and asynchronized logging. It's designed to be used as a drop-in replacement of the standard log package
 
