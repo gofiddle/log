@@ -1,4 +1,4 @@
-package log
+package log_test
 
 import (
 	"bufio"
@@ -9,14 +9,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiddle/log"
+	log "."
 )
 
 func TestLogger(t *testing.T) {
 	fmt.Println("Running TestLogger...")
 
 	// Create a logger that logs to Stdout
-	logger := New(os.Stdout, LOG_LEVEL_DEBUG)
+	logger := log.New(os.Stdout, log.LOG_LEVEL_DEBUG)
 
 	// Print some log messages and they should appear in the file /tmp/log.test.log
 	logger.Trace("This is a trace message") // This message shouldn't be logged
@@ -31,7 +31,7 @@ func TestFileLogger(t *testing.T) {
 
 	// Create a logger that logs to /tmp
 	// We don't specify the log filename, so it will automatically use the program name saved in os.Args[0]
-	logger, err := NewFileLogger("/tmp", "", LOG_LEVEL_DEBUG)
+	logger, err := log.NewFileLogger("/tmp", "", log.LOG_LEVEL_DEBUG)
 	if err != nil {
 		panic(err)
 	}
@@ -83,7 +83,7 @@ func TestHTTPLogger(t *testing.T) {
 	startLogServer()
 
 	// Create a logger that logs to the http log server
-	logger := NewHTTPLogger("http://127.0.0.1:8080/log", LOG_LEVEL_DEBUG)
+	logger := log.NewHTTPLogger("http://127.0.0.1:8080/log", log.LOG_LEVEL_DEBUG)
 
 	// Print some log messages and they should appear in the file /tmp/log.test.log
 	logger.Trace("This is a trace message") // This message shouldn't be logged
@@ -105,7 +105,7 @@ func TestCloseTwice(t *testing.T) {
 		panic(err)
 	}
 
-	logger := New(log.NewAsyncLogWriter(file, 100), LOG_LEVEL_DEBUG)
+	logger := log.New(log.NewAsyncLogWriter(file, 100), log.LOG_LEVEL_DEBUG)
 
 	// Print 10 log messages
 	for i := 0; i < 10; i++ {
@@ -154,8 +154,8 @@ func TestPanic(t *testing.T) {
 	// No need to defer file.Close() because the logger will automatic close the file after use
 
 	// create an AsyncLogWriter
-	w := NewAsyncLogWriter(file, DEFAULT_QUEUE_SIZE)
-	logger := New(w, LOG_LEVEL_DEBUG)
+	w := log.NewAsyncLogWriter(file, log.DEFAULT_QUEUE_SIZE)
+	logger := log.New(w, log.LOG_LEVEL_DEBUG)
 
 	// Print 10 log messages
 	for i := 0; i < 10; i++ {
@@ -174,7 +174,7 @@ func BenchmarkHTTPLogger(b *testing.B) {
 	startLogServer()
 
 	// Create a logger that logs to the http log server
-	logger := NewHTTPLogger("http://127.0.0.1:8080/log", LOG_LEVEL_DEBUG)
+	logger := log.NewHTTPLogger("http://127.0.0.1:8080/log", log.LOG_LEVEL_DEBUG)
 
 	// Sending 100 log messages to the http server should take no time
 	for i := 0; i < 100; i++ {
